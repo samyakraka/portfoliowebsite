@@ -26,7 +26,7 @@ To run the project locally, ensure you have Node.js and npm (or yarn/pnpm/bun) i
 ### Steps to Run Locally  
 1. Clone the repository:  
    ```bash  
-   git clone [https://github.com/your-username/your-repo-name.git ](https://github.com/samyakraka/portfoliowebsite) 
+   git clone https://github.com/samyakraka/portfoliowebsite 
    ```  
 2. Navigate to the project directory:  
    ```bash  
