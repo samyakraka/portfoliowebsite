@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Code } from "lucide-react";
+import { Github, Linkedin, Twitter, Code } from 'lucide-react'
 
 const socialLinks = [
   { name: "GitHub", icon: Github, url: "https://github.com/samyakraka" },
@@ -8,7 +8,7 @@ const socialLinks = [
     url: "https://www.linkedin.com/in/samyakraka/",
   },
   { name: "Twitter", icon: Twitter, url: "https://x.com/samyak_raka" },
-  { name: "LeetCode", icon: Code, url: "https://leetcode.com/u/rakasamyak/" },
+  { name: "LeetCode", icon: Code, url: "https://leetcode.com/u/samyakraka/" },
 ];
 
 export default function SocialLinks() {
@@ -27,5 +27,5 @@ export default function SocialLinks() {
         </a>
       ))}
     </div>
-  );
+  )
 }
