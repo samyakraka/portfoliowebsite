@@ -6,6 +6,9 @@ import { Download } from "lucide-react"
 import Header from "./components/Header"
 import SocialLinks from "./components/SocialLinks"
 import ImprovedProjectCard from "./components/ImprovedProjectCard"
+import GlassCard from "./components/GlassCard"
+import AnimatedSection from "./components/AnimatedSection"
+import BackgroundEffects from "./components/BackgroundEffects"
 import { useTheme } from "./contexts/ThemeContext"
 
 const projects = [
@@ -231,6 +234,8 @@ export default function Home() {
   const { theme } = useTheme()
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
   const visibleProjects = showAllProjects ? projects : projects.slice(0, 6)
 
@@ -245,59 +250,88 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col ${theme === "dark" ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900"}`}
+      className={`min-h-screen flex flex-col relative overflow-x-hidden ${
+        theme === "dark"
+          ? "bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white"
+          : "bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900"
+      }`}
     >
-      <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <BackgroundEffects />
       <Header />
 
       <main className="flex-grow relative">
         {/* Hero Section */}
         <section
           id="home"
-          className={`relative overflow-hidden py-20 sm:py-32 lg:pb-32 xl:pb-36 ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}
+          className={`relative overflow-hidden py-20 sm:py-32 lg:pb-32 xl:pb-36 min-h-screen flex items-center`}
         >
-          <motion.div style={{ y }} className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20" />
+          <motion.div style={{ y, opacity, scale }} className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10" />
           </motion.div>
+
           <div className="container mx-auto px-6 relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 1, ease: [0.25, 0.25, 0, 1] }}
               className="text-center"
             >
-              <h1
-                className={`text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6`}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1.2, delay: 0.2 }}
+                className="relative inline-block mb-8"
               >
-                Samyak Raka
-              </h1>
-              <p className={`text-xl sm:text-2xl mb-8 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+                <h1 className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent mb-6 relative">
+                  Samyak Raka
+                </h1>
+              </motion.div>
+
+              <motion.p
+                className={`text-xl sm:text-2xl mb-12 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+              >
                 Software Engineer | Web & ML Developer
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              </motion.p>
+
+              <motion.div
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+              >
                 <motion.button
-                  onClick={() => (window.location.href = "mailto:samyakraka29@gmail.com")}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
+                  onClick={() => (window.location.href = "mailto:rakasamyak@gmail.com")}
+                  className="group relative px-10 py-5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 text-white rounded-full font-semibold text-lg shadow-2xl overflow-hidden"
+                  whileHover={{ scale: 1.05, rotateX: 10 }}
                   whileTap={{ scale: 0.95 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  Get in Touch
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10">Get in Touch</span>
+                  <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
                 </motion.button>
+
                 <motion.button
                   onClick={downloadCV}
-                  className={`px-8 py-4 border-2 border-blue-500 text-blue-500 rounded-full font-semibold hover:bg-blue-500 hover:text-white transition-all duration-300 flex items-center gap-2`}
-                  whileHover={{ scale: 1.05 }}
+                  className={`group relative px-10 py-5 border-2 border-blue-500 text-blue-500 rounded-full font-semibold text-lg hover:bg-blue-500 hover:text-white transition-all duration-300 flex items-center gap-3 backdrop-blur-sm ${
+                    theme === "dark" ? "bg-white/5" : "bg-white/20"
+                  }`}
+                  whileHover={{ scale: 1.05, rotateX: 10 }}
                   whileTap={{ scale: 0.95 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <Download className="w-5 h-5" />
+                  <Download className="w-5 h-5 group-hover:animate-bounce" />
                   Download CV
                 </motion.button>
-              </div>
+              </motion.div>
+
               <motion.div
-                className="mt-12 flex justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1, duration: 0.8 }}
               >
                 <SocialLinks />
               </motion.div>
@@ -306,389 +340,397 @@ export default function Home() {
         </section>
 
         {/* About Me Section */}
-        <section id="about" className={`py-20 relative ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
+        <AnimatedSection
+          id="about"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/50"} backdrop-blur-sm`}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               About Me
             </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <p className={`text-lg leading-relaxed ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+            <GlassCard className="max-w-5xl mx-auto p-12">
+              <motion.p
+                className={`text-xl leading-relaxed text-center ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
                 Computer Engineering undergrad passionate about technology, with strong skills in software development,
                 AI/ML, and frontend engineering. Led impactful projects in healthcare, IoT and digital security through
                 academic work and national-level hackathons. Driven to explore emerging technologies and build smart,
                 real-world solutions that create meaningful impact.
-              </p>
-            </motion.div>
+              </motion.p>
+            </GlassCard>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Skills Section */}
-        <section id="skills" className={`py-20 relative ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}>
+        <AnimatedSection
+          id="skills"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-950/50" : "bg-white/50"} backdrop-blur-sm`}
+          delay={0.2}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Skills & Expertise
             </motion.h2>
             <motion.p
-              className={`text-center mb-12 max-w-2xl mx-auto text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
+              className={`text-center mb-16 max-w-2xl mx-auto text-xl ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
               Specialized in full-stack development with expertise in various technologies and frameworks
             </motion.p>
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {skillCategories.map((category, categoryIndex) => (
                 <motion.div
                   key={category.title}
-                  className={`rounded-2xl p-6 border shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-900 border-gray-700 hover:border-blue-500/50"
-                      : "bg-white border-gray-200 hover:border-blue-300"
-                  } transition-all duration-300 hover:shadow-xl`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
+                  initial={{ opacity: 0, y: 50, rotateX: -15 }}
+                  whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                  transition={{ duration: 0.8, delay: categoryIndex * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <h3
-                    className={`font-bold mb-4 text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {category.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {category.skills.map((skill, skillIndex) => (
-                      <motion.span
-                        key={skill}
-                        className={`px-3 py-2 text-sm rounded-full font-medium ${
-                          theme === "dark"
-                            ? "bg-gray-800 text-gray-300 border border-gray-600"
-                            : "bg-gray-100 text-gray-700 border border-gray-300"
-                        } hover:scale-105 transition-transform`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: skillIndex * 0.05 }}
-                        viewport={{ once: true }}
-                      >
-                        {skill}
-                      </motion.span>
-                    ))}
-                  </div>
+                  <GlassCard className="p-8 h-full group">
+                    <h3 className="font-bold mb-6 text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {category.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {category.skills.map((skill, skillIndex) => (
+                        <motion.span
+                          key={skill}
+                          className={`px-4 py-2 text-sm rounded-full font-medium backdrop-blur-sm ${
+                            theme === "dark"
+                              ? "bg-gray-800/50 text-gray-300 border border-gray-600/50"
+                              : "bg-gray-100/50 text-gray-700 border border-gray-300/50"
+                          } hover:scale-110 transition-all duration-300 cursor-default`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: skillIndex * 0.05 }}
+                          viewport={{ once: true }}
+                          whileHover={{
+                            scale: 1.1,
+                            backgroundColor: theme === "dark" ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.1)",
+                          }}
+                        >
+                          {skill}
+                        </motion.span>
+                      ))}
+                    </div>
+                  </GlassCard>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Projects Section */}
-        <section id="projects" className={`py-20 relative ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
+        <AnimatedSection
+          id="projects"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/50"} backdrop-blur-sm`}
+          delay={0.3}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Featured Projects
             </motion.h2>
             <motion.p
-              className={`text-center mb-12 max-w-2xl mx-auto text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
+              className={`text-center mb-16 max-w-2xl mx-auto text-xl ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
               Explore some of my recent work and personal projects
             </motion.p>
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {visibleProjects.map((project, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={{ opacity: 0, y: 50, rotateY: -15 }}
+                  whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
                   viewport={{ once: true }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
                   <ImprovedProjectCard {...project} />
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
             {projects.length > 6 && (
               <motion.div
-                className="text-center mt-12"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                className="text-center mt-16"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
                 viewport={{ once: true }}
               >
                 <motion.button
                   onClick={() => setShowAllProjects(!showAllProjects)}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
+                  className="px-10 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold text-lg shadow-2xl backdrop-blur-sm"
+                  whileHover={{ scale: 1.05, rotateX: 10 }}
                   whileTap={{ scale: 0.95 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
                   {showAllProjects ? "Show Less" : "Show More Projects"}
                 </motion.button>
               </motion.div>
             )}
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Education Section */}
-        <section id="education" className={`py-20 relative ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}>
+        <AnimatedSection
+          id="education"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-950/50" : "bg-white/50"} backdrop-blur-sm`}
+          delay={0.4}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Education
             </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
+            <div className="max-w-4xl mx-auto space-y-8">
               {education.map((edu, index) => (
                 <motion.div
                   key={index}
-                  className={`mb-8 p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-gray-50 border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={{ opacity: 0, x: -50, rotateY: -10 }}
+                  whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <h3
-                    className={`font-bold text-xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {edu.degree}
-                  </h3>
-                  <p className={`text-sm mb-2 ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>{edu.period}</p>
-                  <p className={`mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>{edu.institution}</p>
-                  <p className={`font-semibold ${theme === "dark" ? "text-green-400" : "text-green-600"}`}>
-                    {edu.grade}
-                  </p>
+                  <GlassCard className="p-8">
+                    <h3 className="font-bold text-2xl mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {edu.degree}
+                    </h3>
+                    <p className={`text-lg mb-3 ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+                      {edu.period}
+                    </p>
+                    <p className={`mb-3 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                      {edu.institution}
+                    </p>
+                    <p
+                      className={`font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
+                    >
+                      {edu.grade}
+                    </p>
+                  </GlassCard>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Professional Experience Section */}
-        <section id="experience" className={`py-20 relative ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
+        <AnimatedSection
+          id="experience"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/50"} backdrop-blur-sm`}
+          delay={0.5}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Professional Experience
             </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
+            <div className="max-w-4xl mx-auto space-y-8">
               {experience.map((exp, index) => (
                 <motion.div
                   key={index}
-                  className={`mb-8 p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark" ? "bg-gray-950 border-gray-700" : "bg-white border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={{ opacity: 0, y: 50, rotateX: -10 }}
+                  whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <h3
-                    className={`font-bold text-xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {exp.title}
-                  </h3>
-                  <p className={`font-semibold mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-                    {exp.company}
-                  </p>
-                  <p className={`text-sm mb-3 ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>{exp.period}</p>
-                  <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>{exp.description}</p>
+                  <GlassCard className="p-8">
+                    <h3 className="font-bold text-2xl mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {exp.title}
+                    </h3>
+                    <p className={`font-semibold mb-3 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                      {exp.company}
+                    </p>
+                    <p className={`text-lg mb-4 ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+                      {exp.period}
+                    </p>
+                    <p className={`text-lg leading-relaxed ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                      {exp.description}
+                    </p>
+                  </GlassCard>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Achievements Section */}
-        <section id="achievements" className={`py-20 relative ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}>
+        <AnimatedSection
+          id="achievements"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-950/50" : "bg-white/50"} backdrop-blur-sm`}
+          delay={0.6}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Achievements
             </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
+            <div className="max-w-4xl mx-auto space-y-6">
               {achievements.map((achievement, index) => (
                 <motion.div
                   key={index}
-                  className={`mb-4 p-6 rounded-2xl border-l-4 shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-900 border-l-blue-400 border-gray-700"
-                      : "bg-gray-50 border-l-blue-600 border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={{ opacity: 0, x: -50, rotateZ: -2 }}
+                  whileInView={{ opacity: 1, x: 0, rotateZ: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ x: 5 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>{achievement}</p>
+                  <GlassCard className="p-6 border-l-4 border-l-blue-500">
+                    <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>{achievement}</p>
+                  </GlassCard>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Position of Responsibility Section */}
-        <section id="responsibilities" className={`py-20 relative ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
+        <AnimatedSection
+          id="responsibilities"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-900/50" : "bg-gray-100/50"} backdrop-blur-sm`}
+          delay={0.7}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Position of Responsibility
             </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
               {responsibilities.map((resp, index) => (
                 <motion.div
                   key={index}
-                  className={`p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark" ? "bg-gray-950 border-gray-700" : "bg-white border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={{ opacity: 0, y: 50, rotateY: index % 2 === 0 ? -10 : 10 }}
+                  whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <h3
-                    className={`font-bold text-lg mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {resp.title}
-                  </h3>
-                  <p className={`font-semibold mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-                    {resp.organization}
-                  </p>
-                  <p className={`text-sm ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>{resp.period}</p>
+                  <GlassCard className="p-8 h-full">
+                    <h3 className="font-bold text-xl mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {resp.title}
+                    </h3>
+                    <p className={`font-semibold mb-3 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                      {resp.organization}
+                    </p>
+                    <p className={`text-lg ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>{resp.period}</p>
+                  </GlassCard>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Contact Section */}
-        <section id="contact" className={`py-20 relative ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}>
+        <AnimatedSection
+          id="contact"
+          className={`py-24 relative ${theme === "dark" ? "bg-gray-950/50" : "bg-white/50"} backdrop-blur-sm`}
+          delay={0.8}
+        >
           <div className="container mx-auto px-6">
             <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-5xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
               Let's Connect
             </motion.h2>
-            <motion.div
-              className="max-w-md mx-auto text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <p className={`mb-8 text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+            <GlassCard className="max-w-2xl mx-auto p-12 text-center">
+              <motion.p
+                className={`mb-12 text-xl ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
                 Interested in collaboration? Let's discuss your project and make something great together.
-              </p>
+              </motion.p>
               <motion.button
-                onClick={() => (window.location.href = "mailto:rsamyakraka29@gmail.com")}
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
+                onClick={() => (window.location.href = "mailto:rakasamyak@gmail.com")}
+                className="px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold text-xl shadow-2xl"
+                whileHover={{ scale: 1.05, rotateX: 10 }}
                 whileTap={{ scale: 0.95 }}
+                style={{ transformStyle: "preserve-3d" }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true }}
               >
                 Contact Me
               </motion.button>
-            </motion.div>
+            </GlassCard>
           </div>
-        </section>
+        </AnimatedSection>
       </main>
 
       <footer
-        className={`relative border-t ${theme === "dark" ? "border-gray-800 bg-gray-950" : "border-gray-200 bg-gray-100"} py-8`}
+        className={`relative border-t backdrop-blur-sm ${
+          theme === "dark" ? "border-gray-800 bg-gray-950/50" : "border-gray-200 bg-gray-100/50"
+        } py-12`}
       >
         <div className="container mx-auto px-6 text-center">
-          <SocialLinks />
-          <p className={`mt-4 ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
-            &copy; 2024 Samyak Raka. All rights reserved.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <SocialLinks />
+            <p className={`mt-6 text-lg ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+              &copy; 2024 Samyak Raka. All rights reserved.
+            </p>
+          </motion.div>
         </div>
       </footer>
     </div>
