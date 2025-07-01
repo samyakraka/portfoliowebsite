@@ -70,4 +70,3 @@ export default function ProjectCard({ title, description, image, github, demo, t
     </motion.div>
   )
 }
-

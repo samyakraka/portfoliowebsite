@@ -1,32 +1,32 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
-import { useTheme } from "../contexts/ThemeContext";
-import { motion } from "framer-motion";
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { Menu, X } from "lucide-react"
+import ThemeToggle from "./ThemeToggle"
+import { useTheme } from "../contexts/ThemeContext"
+import { motion } from "framer-motion"
 
 export default function Header() {
-  const { theme } = useTheme();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { theme } = useTheme()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   const scrollToSection = (sectionId: string) => {
-    const section = document.getElementById(sectionId);
+    const section = document.getElementById(sectionId)
     if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
+      section.scrollIntoView({ behavior: "smooth" })
     }
-    setIsMenuOpen(false); // Close the mobile menu after clicking
-  };
+    setIsMenuOpen(false) // Close the mobile menu after clicking
+  }
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+      setIsScrolled(window.scrollY > 0)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   return (
     <motion.header
@@ -72,10 +72,7 @@ export default function Header() {
             transition={{ duration: 0.5 }}
           >
             <li className="py-2 md:py-0">
-              <Link
-                href="#home"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
+              <Link href="#home" className="text-gray-400 hover:text-white transition-colors">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -86,10 +83,18 @@ export default function Header() {
               </Link>
             </li>
             <li className="py-2 md:py-0">
-              <Link
-                href="#skills"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
+              <Link href="#about" className="text-gray-400 hover:text-white transition-colors">
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => scrollToSection("about")}
+                >
+                  About
+                </motion.span>
+              </Link>
+            </li>
+            <li className="py-2 md:py-0">
+              <Link href="#skills" className="text-gray-400 hover:text-white transition-colors">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -100,10 +105,7 @@ export default function Header() {
               </Link>
             </li>
             <li className="py-2 md:py-0">
-              <Link
-                href="#projects"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
+              <Link href="#projects" className="text-gray-400 hover:text-white transition-colors">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -114,10 +116,7 @@ export default function Header() {
               </Link>
             </li>
             <li className="py-2 md:py-0">
-              <Link
-                href="#contact"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
+              <Link href="#contact" className="text-gray-400 hover:text-white transition-colors">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -134,5 +133,5 @@ export default function Header() {
         </div>
       </nav>
     </motion.header>
-  );
+  )
 }
