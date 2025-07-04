@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Download } from "lucide-react"
 import Header from "./components/Header"
 import SocialLinks from "./components/SocialLinks"
 import ImprovedProjectCard from "./components/ImprovedProjectCard"
@@ -115,7 +114,7 @@ const projects = [
 const skillCategories = [
   {
     title: "Programming Languages",
-    skills: ["Python", "C", "C++", "Java", "HTML", "CSS", "JavaScript", "TypeScript", "Tailwind CSS"],
+    skills: ["Python", "C++", "HTML", "CSS", "JavaScript", "TypeScript", "Tailwind CSS"],
   },
   {
     title: "Machine Learning",
@@ -125,7 +124,6 @@ const skillCategories = [
     title: "Web Development",
     skills: [
       "Flask",
-      "Django",
       "MySQL",
       "MongoDB",
       "Bootstrap",
@@ -139,25 +137,15 @@ const skillCategories = [
   },
   {
     title: "APIs and Tools",
-    skills: ["Google Cloud", "Gemini API", "yt-dlp", "SpeechRecognition", "gTTS", "Text Analytics"],
+    skills: ["Gemini API", "yt-dlp", "SpeechRecognition", "gTTS"],
   },
   {
     title: "Developer Tools",
-    skills: ["Git", "Google Cloud", "VS Code", "Visual Studio", "AWS", "Arduino IDE", "JSON", "Android Studio"],
+    skills: ["Git", "VS Code", "Visual Studio", "Arduino IDE", "JSON", "Android Studio"],
   },
   {
     title: "Others",
-    skills: [
-      "Arduino",
-      "Raspberry Pi",
-      "Figma",
-      "Canva",
-      "MS Excel",
-      "AstraDB",
-      "Data Structures",
-      "Algorithms",
-      "React Native",
-    ],
+    skills: ["Arduino", "Figma", "AstraDB", "Data Structures", "Algorithms", "React Native"],
   },
 ]
 
@@ -166,7 +154,7 @@ const education = [
     degree: "B.TECH IN COMPUTER ENGINEERING",
     period: "2022 - 2026",
     institution: "K. K. Wagh Institute of Engineering Education and Research, Nashik",
-    grade: "CGPA: 8.61",
+    grade: "CGPA: 8.56/10",
   },
   {
     degree: "HIGHER SECONDARY (HSC)",
@@ -239,15 +227,6 @@ export default function Home() {
 
   const visibleProjects = showAllProjects ? projects : projects.slice(0, 6)
 
-  const downloadCV = () => {
-    const link = document.createElement("a")
-    link.href = "/Samyak_Raka_CV.pdf"
-    link.download = "Samyak_Raka_CV.pdf"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   return (
     <div
       className={`min-h-screen flex flex-col relative overflow-x-hidden ${
@@ -297,13 +276,13 @@ export default function Home() {
               </motion.p>
 
               <motion.div
-                className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+                className="flex justify-center items-center mb-16"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
               >
                 <motion.button
-                  onClick={() => (window.location.href = "mailto:rakasamyak@gmail.com")}
+                  onClick={() => (window.location.href = "mailto:samyakraka29@gmail.com")}
                   className="group relative px-10 py-5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 text-white rounded-full font-semibold text-lg shadow-2xl overflow-hidden"
                   whileHover={{ scale: 1.05, rotateX: 10 }}
                   whileTap={{ scale: 0.95 }}
@@ -312,19 +291,6 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <span className="relative z-10">Get in Touch</span>
                   <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
-                </motion.button>
-
-                <motion.button
-                  onClick={downloadCV}
-                  className={`group relative px-10 py-5 border-2 border-blue-500 text-blue-500 rounded-full font-semibold text-lg hover:bg-blue-500 hover:text-white transition-all duration-300 flex items-center gap-3 backdrop-blur-sm ${
-                    theme === "dark" ? "bg-white/5" : "bg-white/20"
-                  }`}
-                  whileHover={{ scale: 1.05, rotateX: 10 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ transformStyle: "preserve-3d" }}
-                >
-                  <Download className="w-5 h-5 group-hover:animate-bounce" />
-                  Download CV
                 </motion.button>
               </motion.div>
 
@@ -697,7 +663,7 @@ export default function Home() {
                 Interested in collaboration? Let's discuss your project and make something great together.
               </motion.p>
               <motion.button
-                onClick={() => (window.location.href = "mailto:rakasamyak@gmail.com")}
+                onClick={() => (window.location.href = "mailto:samyakraka29@gmail.com")}
                 className="px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold text-xl shadow-2xl"
                 whileHover={{ scale: 1.05, rotateX: 10 }}
                 whileTap={{ scale: 0.95 }}
