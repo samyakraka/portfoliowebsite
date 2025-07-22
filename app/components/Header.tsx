@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle"
 import { useTheme } from "../contexts/ThemeContext"
 import { motion } from "framer-motion"
 
-export default function Header() {
+export function Header() {
   const { theme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
