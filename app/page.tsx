@@ -1,847 +1,569 @@
 "use client";
 
-import { useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Header } from "./components/Header";
-import SocialLinks from "./components/SocialLinks";
-import ImprovedProjectCard from "./components/ImprovedProjectCard";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { FooterLinks, Header } from "./components/SiteChrome";
+import Link from "next/link";
+import { Search } from "lucide-react";
+import {
+  certifications,
+  education,
+  experience,
+  featured,
+  otherProjects,
+  product,
+  profile,
+  recognition,
+  searchSuggestions,
+  skills,
+  wins,
+  type Project,
+} from "./data";
+import { Hi, matches, QueryProvider, toTerms, useTerms } from "./components/Search";
 import { useTheme } from "./contexts/ThemeContext";
+import type { Vec } from "./components/EmbeddingSpace";
 
-const projects = [
+const EmbeddingSpace = dynamic(() => import("./components/EmbeddingSpace"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const projectText = (p: Project) =>
+  [p.title, p.kind, p.summary, p.detail, p.tech.join(" "), p.tags].join(" ");
+
+const roleText = (r: (typeof experience)[number]) =>
+  [
+    r.company,
+    r.title,
+    r.points.join(" "),
+    r.tech.join(" "),
+    r.earlier?.title,
+    r.earlier?.points.join(" "),
+  ].join(" ");
+
+// Every item on the page becomes one point in the hero figure.
+const vectors: Vec[] = [
+  ...[...featured, ...otherProjects].map((p) => ({
+    id: `p-${p.title}`,
+    label: p.title,
+    cluster: "Projects",
+    text: projectText(p),
+  })),
+  ...experience.map((r) => ({
+    id: `r-${r.company}`,
+    label: r.company,
+    cluster: "Experience",
+    text: roleText(r),
+  })),
   {
-    title: "Medibites",
-    description:
-      "Medibites is a comprehensive full-stack web platform that integrates advanced healthcare and smart food services into one seamless experience. Powered by AI and blockchain, it offers features like personalized medical booking, disease prediction, secure health data management, remote video consultations, and smart food ordering with real-time food image analysis, nutrition tracking, and personalized menu recommendations — all designed to improve health and wellness in an intelligent, user-friendly way.",
-    image:
-      "https://github.com/samyakraka/Medibites/blob/master/medibites-img.png?raw=true",
-    github: "https://github.com/samyakraka/Medibites",
-    demo: "https://medibites.vercel.app/",
-    tech: ["Web", "AI", "Blockchain"],
+    id: "expenseek",
+    label: product.name,
+    cluster: "Experience",
+    text: [product.name, product.summary, product.tags].join(" "),
   },
-  {
-    title: "StackIt – A Minimal Q&A Forum Platform",
-    description:
-      "StackIt is a minimal question-and-answer platform that supports collaborative learning and structured knowledge sharing. It’s designed to be simple, user-friendly, and focused on the core experience of asking and answering questions within a community.",
-    image:
-      "https://github.com/VedantDeore/StackIT/blob/main/stackit.png?raw=true",
-    github: "https://github.com/VedantDeore/StackIT/",
-    demo: "https://stack-it-seven.vercel.app/",
-    tech: ["NextJs", "Firebase", "AI"],
-  },
-  {
-    title: "SocioDev",
-    description:
-      "SocioDev is a React Native-powered social media app for developers to share articles, connect with peers, and grow their network. Features include user profiles, article publishing, bookmarking, AI-generated content, and Firebase integration.",
-    image:
-      "https://github.com/samyakraka/SocioDev/blob/main/sociodev-app.jpg?raw=true",
-    github: "https://github.com/samyakraka/SocioDev",
-    demo: "https://github.com/samyakraka/SocioDev",
-    tech: ["React Native", "AI", "App"],
-  },
-  {
-    title: "Research AI Agent",
-    description:
-      "An AI research assistant that generates research summaries and documents using LangChain, Flask, and a user-friendly interface.",
-    image:
-      "https://github.com/samyakraka/research-ai-agent/blob/main/research%20ai%20agent.png?raw=true",
-    github: "https://github.com/samyakraka/research-ai-agent",
-    demo: "https://research-ai-agent.vercel.app/",
-    tech: ["AI", "LangChain", "Flask"],
-  },
-  {
-    title: "YouTranscribe",
-    description:
-      "YouTranscribe enables users to transcribe, translate, and summarize YouTube audio content using an intuitive Streamlit interface.",
-    image:
-      "https://github.com/samyakraka/YouTranscribe/blob/main/YouTranscribess.png?raw=true",
-    github: "https://github.com/samyakraka/YouTranscribe",
-    demo: "https://github.com/samyakraka/YouTranscribe",
-    tech: ["Python", "Streamlit", "GTTs", "JSON"],
-  },
-  {
-    title: "EventHub",
-    description:
-      "EventHub is a full-stack web app for discovering and managing events, built with Next.js, MongoDB, Firebase, and Express.js.",
-    image:
-      "https://github.com/samyakraka/eventhub-frontend/blob/main/eventhub.png?raw=true",
-    github: "https://github.com/samyakraka/eventhub-frontend",
-    demo: "https://eventhub2.vercel.app/",
-    tech: ["Next.js", "MongoDB", "AI"],
-  },
-  {
-    title: "Song Recommendation System",
-    description:
-      "A personalized song recommender built using Spotify data and user listening habits, leveraging Spotipy and Python GUI for interactive experiences.",
-    image:
-      "https://github.com/samyakraka/Song-Recommendation-System/blob/main/Sample1.jpg?raw=true",
-    github: "https://github.com/samyakraka/Song-Recommendation-System",
-    demo: "https://vibesync-ai.onrender.com/",
-    tech: ["Python", "Flask", "Spotipy"],
-  },
-  {
-    title: "ATS Scorer",
-    description:
-      "An intelligent system for job seekers & HR professionals to analyze, rank, and optimize resumes using AI and NLP.",
-    image:
-      "https://github.com/samyakraka/Resume-filtration/blob/main/resume-filtration.png?raw=true",
-    github: "https://github.com/samyakraka/Resume-filtration",
-    demo: "https://resumefiltration.vercel.app/",
-    tech: ["MERN Stack", "Python", "ML"],
-  },
-  {
-    title: "SmartBin",
-    description:
-      "IoT-based smart waste management system using ultrasonic sensors and real-time data tracking with Flask and Arduino.",
-    image:
-      "https://github.com/samyakraka/Smart-Bin/blob/main/smartbin.png?raw=true",
-    github: "https://github.com/samyakraka/Smart-Bin",
-    demo: "https://smart-bin-26tv.onrender.com/",
-    tech: ["IoT", "Flask", "JSON"],
-  },
-  {
-    title: "FlexiCare",
-    description:
-      "A webcam-based app for real-time posture correction using computer vision and ML, offering instant feedback and progress tracking.",
-    image:
-      "https://github.com/samyakraka/flexi-care/blob/main/FlexiCare.png?raw=true",
-    github: "https://github.com/samyakraka/flexi-care",
-    demo: "https://flexi-care.onrender.com/",
-    tech: ["Python", "ML", "MediaPipe"],
-  },
-  {
-    title: "Astralytics",
-    description:
-      "AI-powered analytics platform for tracking social media engagement using LangFlow and Astra DB with actionable insights.",
-    image:
-      "https://github.com/samyakraka/Astralytics/blob/main/astralytics.png?raw=true",
-    github: "https://github.com/samyakraka/Astralytics",
-    demo: "https://astralytics.vercel.app/",
-    tech: ["AI", "LangFlow", "Next.js"],
-  },
-  {
-    title: "Article Summarization",
-    description:
-      "A web tool for summarizing long-form articles using AI, developed for OpenHack IISC Bangalore.",
-    image:
-      "https://github.com/samyakraka/Article-Summarization/blob/main/article-summarization.png?raw=true",
-    github: "https://github.com/samyakraka/Article-Summarization",
-    demo: "https://article-summarization-open-hack-iisc-bangalore.vercel.app/",
-    tech: ["HTML", "JavaScript", "AI"],
-  },
+  ...[...wins, ...recognition].map((w) => ({
+    id: `w-${w.title}`,
+    label: w.title,
+    cluster: "Hackathons",
+    text: ["hackathon", w.title, w.detail, w.tags].join(" "),
+  })),
+  ...skills.flatMap((g) =>
+    g.items.map((s) => ({
+      id: `s-${s}`,
+      label: s,
+      cluster: g.group === "Also" ? "Foundations" : g.group,
+      text: s,
+    })),
+  ),
 ];
 
-const skillCategories = [
-  {
-    title: "Programming Languages",
-    skills: [
-      "Python",
-      "C++",
-      "HTML",
-      "CSS",
-      "JavaScript",
-      "TypeScript",
-      "Tailwind CSS",
-    ],
-  },
-  {
-    title: "Machine Learning",
-    skills: [
-      "TensorFlow",
-      "PyTorch",
-      "NumPy",
-      "Pandas",
-      "OpenCV",
-      "Langflow",
-      "Langchain",
-      "NLP",
-    ],
-  },
-  {
-    title: "Web Development",
-    skills: [
-      "Flask",
-      "MySQL",
-      "MongoDB",
-      "Bootstrap",
-      "Firebase",
-      "ReactJS",
-      "ExpressJS",
-      "NodeJS",
-      "NextJS",
-      "Streamlit",
-    ],
-  },
-  {
-    title: "APIs and Tools",
-    skills: ["Gemini API", "yt-dlp", "SpeechRecognition", "gTTS"],
-  },
-  {
-    title: "Developer Tools",
-    skills: [
-      "Git",
-      "VS Code",
-      "Visual Studio",
-      "Arduino IDE",
-      "JSON",
-      "Android Studio",
-    ],
-  },
-  {
-    title: "Others",
-    skills: [
-      "Arduino",
-      "Figma",
-      "AstraDB",
-      "Data Structures",
-      "Algorithms",
-      "React Native",
-    ],
-  },
-];
-const education = [
-  {
-    degree: "B.TECH IN COMPUTER ENGINEERING",
-    period: "2022 - 2026",
-    institution:
-      "K. K. Wagh Institute of Engineering Education and Research, Nashik",
-    grade: "CGPA: 8.55/10",
-  },
-  {
-    degree: "HIGHER SECONDARY (HSC)",
-    period: "2020 - 2022",
-    institution: "Matoshri Junior College, Mhasrul, Nashik",
-    grade: "Percentage: 83%",
-  },
-  {
-    degree: "SECONDARY (SSC)",
-    period: "2020",
-    institution: "Espalier The Experimental School, Nashik",
-    grade: "Percentage: 89.80%",
-  },
-];
+function useClock() {
+  const [now, setNow] = useState<string | null>(null);
+  useEffect(() => {
+    const fmt = new Intl.DateTimeFormat("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Asia/Kolkata",
+    });
+    const tick = () => setNow(fmt.format(new Date()));
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
-const achievements = [
-  "Winner, Technitude Global Hackathon, SP Jain Institute of Management & Research, Sydney (03/2025)",
-  "Winner of Inter-Department Database Management Systems Competition (10/2024)",
-  "Finalist, Smart India Hackathon 2024 (12/2024)",
-  "Top 10 Finalist, Shaastra Smart City Challenge, IIT Madras (01/2023)",
-];
+function plural(n: number, word: string) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
 
-const experience = [
-  {
-    title: "AI Enablement Intern – Founder's Office",
-    company: "Crowdera",
-    period: "Jun 2025 - Present",
-    description:
-      "Working directly with the Founder's Office on AI-driven initiatives across business functions, product strategy, and operational efficiency. Contributing to AI automation solutions, cross-functional collaboration, and strategic decision-making through data analysis.",
-  },
-  {
-    title: "Open Source Contributor",
-    company: "Hacktoberfest 2023 and 2024",
-    period: "Oct 2023, 2024",
-    description:
-      "Contributed to 14+ open-source repositories, improving documentation, fixing bugs, and adding new features. Gained hands-on experience in collaborative coding for a community of over 10,000+ developers globally.",
-  },
-];
-
-const responsibilities = [
-  {
-    title: "Student Ambassador",
-    organization: "IDS Bharat Blockchain Network",
-    period: "Dec 2024 - Present",
-  },
-  {
-    title: "Creatives/Social Media Head",
-    organization: "Debugger's Club KKWIEER",
-    period: "Sep 2024 - Present",
-  },
-  {
-    title: "Committee Member",
-    organization: "Institutions Innovation Council",
-    period: "Oct 2023 - Present",
-  },
-  {
-    title: "Head of Hackathon Operations",
-    organization: "Innov-era",
-    period: "Jan 2025 - Mar 2025",
-  },
-];
-
-export default function Home() {
-  const [showAllProjects, setShowAllProjects] = useState(false);
-  const { theme } = useTheme();
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-
-  const visibleProjects = showAllProjects ? projects : projects.slice(0, 6);
-
+function Links({ live, code, name }: { live?: string; code?: string; name: string }) {
+  if (!live && !code) return null;
   return (
-    <div
-      className={`min-h-screen flex flex-col ${
-        theme === "dark" ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900"
-      }`}
-    >
-      <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-      <Header />
+    <div className="links">
+      {live && (
+        <a href={live} target="_blank" rel="noopener noreferrer" aria-label={`${name} live site`}>
+          Live site
+        </a>
+      )}
+      {code && (
+        <a href={code} target="_blank" rel="noopener noreferrer" aria-label={`${name} source code`}>
+          Source
+        </a>
+      )}
+    </div>
+  );
+}
 
-      <main className="flex-grow relative">
-        {/* Hero Section */}
-        <section
-          id="home"
-          className={`relative overflow-hidden py-20 sm:py-32 lg:pb-32 xl:pb-36 ${
-            theme === "dark" ? "bg-gray-950" : "bg-white"
-          }`}
-        >
-          <motion.div style={{ y }} className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20" />
-          </motion.div>
-          <div className="container mx-auto px-6 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center"
-            >
-              <h1
-                className={`text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6`}
-              >
-                Samyak Raka
-              </h1>
-              <p
-                className={`text-xl sm:text-2xl mb-8 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                Software Engineer | Web & ML Developer
+function Section({
+  id,
+  title,
+  note,
+  children,
+}: {
+  id: string;
+  title: string;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="wrap section" aria-labelledby={`${id}-title`}>
+      <div className="section__head">
+        <h2 id={`${id}-title`} className="section__title">
+          {title}
+        </h2>
+        {note && <p className="section__note">{note}</p>}
+      </div>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+function Work() {
+  const terms = useTerms();
+  return (
+    <Section id="work" title="Selected work" note="What each project does, and what it's built with.">
+      <div className="work">
+        {featured.map((p) => (
+          <article key={p.title} className="work__item" data-dim={!matches(terms, projectText(p))}>
+            <p className="work__kind">
+              <Hi>{p.kind}</Hi>
+            </p>
+            <h3>
+              <Hi>{p.title}</Hi>
+            </h3>
+            <p className="work__summary">
+              <Hi>{p.summary}</Hi>
+            </p>
+            <p className="work__detail">
+              <Hi>{p.detail}</Hi>
+            </p>
+            <ul className="tech" aria-label="Built with">
+              {p.tech.map((t) => (
+                <li key={t}>
+                  <Hi>{t}</Hi>
+                </li>
+              ))}
+            </ul>
+            <Links live={p.live} code={p.code} name={p.title} />
+          </article>
+        ))}
+      </div>
+
+      <div className="more">
+        <h3>Earlier builds</h3>
+        <ul className="more__list">
+          {otherProjects.map((p) => (
+            <li key={p.title} className="more__row" data-dim={!matches(terms, projectText(p))}>
+              <span className="more__title">
+                <Hi>{p.title}</Hi>
+              </span>
+              <span className="more__summary">
+                <Hi>{p.summary}</Hi> <Hi>{`(${p.tech.join(", ")})`}</Hi>
+              </span>
+              <Links live={p.live} code={p.code} name={p.title} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Section>
+  );
+}
+
+function Experience() {
+  const terms = useTerms();
+  return (
+    <Section id="experience" title="Experience">
+      <div className="roles">
+        {experience.map((r) => (
+          <article key={r.company} className="role" data-dim={!matches(terms, roleText(r))}>
+            <p className="role__when">
+              {r.tenure ?? r.period}
+              <br />
+              {r.place}
+            </p>
+            <div>
+              <h3>
+                <Hi>{r.company}</Hi>
+              </h3>
+              <p className="role__title">
+                <Hi>{r.title}</Hi>
+                {r.tenure && <span className="role__period">{`, ${r.period}, full time`}</span>}
               </p>
-              <div className="flex justify-center">
-                <motion.button
-                  onClick={() => (window.location.href = "mailto:@gmail.com")}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Get in Touch
-                </motion.button>
-              </div>
-              <motion.div
-                className="mt-12 flex justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                <SocialLinks />
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* About Me Section */}
-        <section
-          id="about"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-950" : "bg-white"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              About Me
-            </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <p
-                className={`text-lg leading-relaxed ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Computer Engineering undergrad passionate about technology, with
-                strong skills in software development, AI/ML, and frontend
-                engineering. Led impactful projects in healthcare, IoT and
-                digital security through academic work and national-level
-                hackathons. Driven to explore emerging technologies and build
-                smart, real-world solutions that create meaningful impact.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Skills Section */}
-        <section
-          id="skills"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Skills & Expertise
-            </motion.h2>
-            <motion.p
-              className={`text-center mb-12 max-w-2xl mx-auto text-lg ${
-                theme === "dark" ? "text-gray-300" : "text-gray-600"
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Specialized in full-stack development with expertise in various
-              technologies and frameworks
-            </motion.p>
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              {skillCategories.map((category, categoryIndex) => (
-                <motion.div
-                  key={category.title}
-                  className={`rounded-2xl p-6 border shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-900 border-gray-700 hover:border-blue-500/50"
-                      : "bg-white border-gray-200 hover:border-blue-300"
-                  } transition-all duration-300 hover:shadow-xl`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                >
-                  <h3
-                    className={`font-bold mb-4 text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {category.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {category.skills.map((skill, skillIndex) => (
-                      <motion.span
-                        key={skill}
-                        className={`px-3 py-2 text-sm rounded-full font-medium ${
-                          theme === "dark"
-                            ? "bg-gray-800 text-gray-300 border border-gray-600"
-                            : "bg-gray-100 text-gray-700 border border-gray-300"
-                        } hover:scale-105 transition-transform`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: skillIndex * 0.05 }}
-                        viewport={{ once: true }}
-                      >
-                        {skill}
-                      </motion.span>
+              <ul className="points">
+                {r.points.map((pt) => (
+                  <li key={pt}>
+                    <Hi>{pt}</Hi>
+                  </li>
+                ))}
+              </ul>
+              {r.earlier && (
+                <div className="role__earlier">
+                  <p>
+                    <strong>
+                      <Hi>{r.earlier.title}</Hi>
+                    </strong>
+                    <span className="role__period">{`, ${r.earlier.period}`}</span>
+                  </p>
+                  <ul className="points">
+                    {r.earlier.points.map((pt) => (
+                      <li key={pt}>
+                        <Hi>{pt}</Hi>
+                      </li>
                     ))}
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
+                  </ul>
+                </div>
+              )}
+              <ul className="tech" aria-label="Worked with">
+                {r.tech.map((t) => (
+                  <li key={t}>
+                    <Hi>{t}</Hi>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
+      </div>
+    </Section>
+  );
+}
 
-        {/* Projects Section */}
-        <section
-          id="projects"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-950" : "bg-white"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Featured Projects
-            </motion.h2>
-            <motion.p
-              className={`text-center mb-12 max-w-2xl mx-auto text-lg ${
-                theme === "dark" ? "text-gray-300" : "text-gray-600"
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Explore some of my recent work and personal projects
-            </motion.p>
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              {visibleProjects.map((project, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <ImprovedProjectCard {...project} />
-                </motion.div>
-              ))}
-            </motion.div>
-            {projects.length > 6 && (
-              <motion.div
-                className="text-center mt-12"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                viewport={{ once: true }}
-              >
-                <motion.button
-                  onClick={() => setShowAllProjects(!showAllProjects)}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {showAllProjects ? "Show Less" : "Show More Projects"}
-                </motion.button>
-              </motion.div>
-            )}
-          </div>
-        </section>
-
-        {/* Education Section */}
-        <section
-          id="education"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Education
-            </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {education.map((edu, index) => (
-                <motion.div
-                  key={index}
-                  className={`mb-8 p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-900 border-gray-700"
-                      : "bg-gray-50 border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                >
-                  <h3
-                    className={`font-bold text-xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {edu.degree}
-                  </h3>
-                  <p
-                    className={`text-sm mb-2 ${
-                      theme === "dark" ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {edu.period}
-                  </p>
-                  <p
-                    className={`mb-2 ${
-                      theme === "dark" ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {edu.institution}
-                  </p>
-                  <p
-                    className={`font-semibold ${
-                      theme === "dark" ? "text-blue-400" : "text-blue-600"
-                    }`}
-                  >
-                    {edu.grade}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Professional Experience Section */}
-        <section
-          id="experience"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Professional Experience
-            </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {experience.map((exp, index) => (
-                <motion.div
-                  key={index}
-                  className={`mb-8 p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-950 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                >
-                  <h3
-                    className={`font-bold text-xl mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {exp.title}
-                  </h3>
-                  <p
-                    className={`font-semibold mb-2 ${
-                      theme === "dark" ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {exp.company}
-                  </p>
-                  <p
-                    className={`text-sm mb-3 ${
-                      theme === "dark" ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {exp.period}
-                  </p>
-                  <p
-                    className={`${
-                      theme === "dark" ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {exp.description}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Achievements Section */}
-        <section
-          id="achievements"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-950" : "bg-white"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Achievements
-            </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {achievements.map((achievement, index) => (
-                <motion.div
-                  key={index}
-                  className={`mb-4 p-6 rounded-2xl border-l-4 shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-900 border-l-blue-400 border-gray-700"
-                      : "bg-gray-50 border-l-blue-600 border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ x: 5 }}
-                >
-                  <p
-                    className={`${
-                      theme === "dark" ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {achievement}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Position of Responsibility Section */}
-        <section
-          id="responsibilities"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Position of Responsibility
-            </motion.h2>
-            <motion.div
-              className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {responsibilities.map((resp, index) => (
-                <motion.div
-                  key={index}
-                  className={`p-6 rounded-2xl border shadow-lg ${
-                    theme === "dark"
-                      ? "bg-gray-950 border-gray-700"
-                      : "bg-white border-gray-200"
-                  } hover:shadow-xl transition-all duration-300`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                >
-                  <h3
-                    className={`font-bold text-lg mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                  >
-                    {resp.title}
-                  </h3>
-                  <p
-                    className={`font-semibold mb-2 ${
-                      theme === "dark" ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
-                    {resp.organization}
-                  </p>
-                  <p
-                    className={`text-sm ${
-                      theme === "dark" ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {resp.period}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section
-          id="contact"
-          className={`py-20 relative ${
-            theme === "dark" ? "bg-gray-950" : "bg-white"
-          }`}
-        >
-          <div className="container mx-auto px-6">
-            <motion.h2
-              className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Let&apos;s Connect
-            </motion.h2>
-            <motion.div
-              className="max-w-md mx-auto text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <p
-                className={`mb-8 text-lg ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                Interested in collaboration? Let&apos;s discuss your project and
-                make something great together.
-              </p>
-              <motion.button
-                onClick={() =>
-                  (window.location.href = "mailto:samyakraka29@gmail.com")
-                }
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Contact Me
-              </motion.button>
-            </motion.div>
-          </div>
-        </section>
-      </main>
-
-      <footer
-        className={`relative border-t ${
-          theme === "dark"
-            ? "border-gray-800 bg-gray-950"
-            : "border-gray-200 bg-gray-100"
-        } py-8`}
+function Product() {
+  const terms = useTerms();
+  return (
+    <Section id="product" title="My own app" note="Built, shipped and maintained on my own, outside work.">
+      <article
+        className="product"
+        data-dim={!matches(terms, product.name, product.summary, product.features.join(" "), product.tags)}
       >
-        <div className="container mx-auto px-6 text-center">
-          <SocialLinks />
-          <p
-            className={`mt-4 ${
-              theme === "dark" ? "text-gray-400" : "text-gray-600"
-            }`}
+        <div className="product__head">
+          <Image src={product.icon} alt="" width={64} height={64} className="product__icon" />
+          <div>
+            <h3>
+              <Hi>{product.name}</Hi>
+            </h3>
+            <p className="product__role">{product.role}</p>
+          </div>
+        </div>
+        <p className="product__summary">
+          <Hi>{product.summary}</Hi>
+        </p>
+        <ul className="product__features">
+          {product.features.map((f) => (
+            <li key={f}>
+              <Hi>{f}</Hi>
+            </li>
+          ))}
+        </ul>
+        <dl className="product__stats">
+          {product.stats.map((st) => (
+            <div key={st.label}>
+              <dt>{st.label}</dt>
+              <dd>{st.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <a className="btn btn--solid" href={product.url} target="_blank" rel="noopener noreferrer">
+          Get it on Google Play
+        </a>
+      </article>
+    </Section>
+  );
+}
+
+function Recognition() {
+  const terms = useTerms();
+  return (
+    <Section
+      id="recognition"
+      title="Hackathons"
+      note="Four wins and two Smart India Hackathon finals as team lead."
+    >
+      <p className="wins__caption" id="wins-caption">
+        First place
+      </p>
+      <ul className="wins" aria-labelledby="wins-caption">
+        {wins.map((w) => (
+          <li
+            key={w.title}
+            className="win"
+            data-dim={!matches(terms, "winner hackathon win", w.title, w.detail, w.tags)}
           >
-            &copy; 2024 Samyak Raka. All rights reserved.
+            <h3>
+              <Hi>{w.title}</Hi>
+            </h3>
+            <p className="win__where">
+              <Hi>{w.detail}</Hi>
+            </p>
+          </li>
+        ))}
+      </ul>
+      <ul className="record">
+        {recognition.map((r) => (
+          <li key={r.title} data-dim={!matches(terms, "hackathon", r.title, r.detail, r.tags)}>
+            <h3>
+              <Hi>{r.title}</Hi>
+            </h3>
+            <p>
+              <Hi>{r.detail}</Hi>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+function Skills() {
+  const terms = useTerms();
+  return (
+    <Section id="skills" title="Toolkit">
+      <div className="skills">
+        {skills.map((g) => (
+          <div key={g.group} className="skills__row">
+            <h3 className="skills__group">{g.group}</h3>
+            <ul className="skills__items">
+              {g.items.map((s) => (
+                <li key={s} data-dim={terms.length > 0 && !matches(terms, s, g.group)}>
+                  <Hi>{s}</Hi>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function Education() {
+  return (
+    <Section id="education" title="Education">
+      {education.map((e) => (
+        <div key={e.school} className="edu">
+          <h3>{e.degree}</h3>
+          <p>{e.school}</p>
+          <p>
+            {e.period}, {e.note}
           </p>
         </div>
+      ))}
+      <ul className="certs" aria-label="Certifications">
+        {certifications.map((c) => (
+          <li key={c.title}>
+            <Hi>{c.title}</Hi>
+            <span>
+              {c.issuer}, {c.date}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+export default function Home() {
+  const [query, setQuery] = useState("");
+  const deferred = useDeferredValue(query);
+  const terms = useMemo(() => toTerms(deferred), [deferred]);
+
+  const counts = useMemo(() => {
+    if (terms.length === 0) return null;
+    const projects = [...featured, ...otherProjects].filter((p) => matches(terms, projectText(p))).length;
+    const roles = experience.filter((r) => matches(terms, roleText(r))).length;
+    const skillHits = skills.flatMap((g) => g.items.filter((s) => matches(terms, s, g.group))).length;
+    return { projects, roles, skillHits };
+  }, [terms]);
+
+  const active = query.trim().toLowerCase();
+  const hitCount = useMemo(() => vectors.filter((v) => matches(terms, v.text)).length, [terms]);
+  const { theme } = useTheme();
+  const clock = useClock();
+
+  return (
+    <QueryProvider value={terms}>
+      <a href="#work" className="skip">
+        Skip to work
+      </a>
+      <Header />
+
+      <main id="top">
+        <section className="wrap hero" aria-label="Introduction">
+          <div className="hero__grid">
+            <div className="hero__text">
+              <div className="hero__id rise" style={{ "--i": 0 } as React.CSSProperties}>
+                <p>
+                  {profile.role}
+                  <br />
+                  <span>at {profile.company}</span>
+                </p>
+              </div>
+              <h1 className="hero__name">
+                <span className="rise" style={{ "--i": 1 } as React.CSSProperties}>
+                  Samyak
+                </span>
+                <span className="rise" style={{ "--i": 2 } as React.CSSProperties}>
+                  Raka
+                </span>
+              </h1>
+              <div className="rise" style={{ "--i": 3 } as React.CSSProperties}>
+                <p className="hero__tagline">{profile.tagline}</p>
+                <p className="hero__intro">{profile.intro}</p>
+                <div className="hero__actions">
+                  <a className="btn btn--solid" href={`mailto:${profile.email}`}>
+                    Email me
+                  </a>
+                  <a
+                    className="btn btn--ghost"
+                    href={profile.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Download resume
+                  </a>
+                </div>
+                <dl className="hero__facts">
+                  <div>
+                    <dt>Now</dt>
+                    <dd>AI systems at Crowdera, full time</dd>
+                  </div>
+                  <div>
+                    <dt>Record</dt>
+                    <dd>4 hackathon wins, 2× Smart India Hackathon finalist</dd>
+                  </div>
+                  <div>
+                    <dt>Studied</dt>
+                    <dd>B.Tech Computer Engineering, 2026, CGPA 8.71</dd>
+                  </div>
+                  <div>
+                    <dt>Based in</dt>
+                    <dd>
+                      {profile.location}
+                      {clock && <span className="hero__clock">, {clock} local time</span>}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            <figure className="fig rise" style={{ "--i": 4 } as React.CSSProperties}>
+              <div className="fig__top" aria-hidden="true">
+                <span>Fig. 1</span>
+                <span>
+                  {terms.length > 0
+                    ? `${hitCount} of ${vectors.length} retrieved`
+                    : `${vectors.length} vectors`}
+                </span>
+              </div>
+              <div
+                className="fig__canvas"
+                role="img"
+                aria-label="A rotating 3D map of every project, role, hackathon and skill on this page, grouped by topic. Searching highlights the matching points."
+              >
+                <EmbeddingSpace points={vectors} terms={terms} dark={theme === "dark"} />
+              </div>
+
+              <div className="finder" role="search">
+                <label htmlFor="finder" className="finder__label">
+                  Search my work
+                </label>
+                <div className="finder__field">
+                  <Search size={20} aria-hidden="true" />
+                  <input
+                    id="finder"
+                    className="finder__input"
+                    type="search"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="Try RAG or Next.js"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  {query && (
+                    <button type="button" className="finder__clear" onClick={() => setQuery("")}>
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="finder__chips" aria-label="Suggested searches">
+                  {searchSuggestions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="chip"
+                      aria-pressed={active === s.toLowerCase()}
+                      onClick={() => setQuery(active === s.toLowerCase() ? "" : s)}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <p className="finder__result" aria-live="polite">
+                  {counts ? (
+                    counts.projects + counts.roles + counts.skillHits === 0 ? (
+                      <>Nothing matches “{deferred.trim()}”. Try a broader word, like AI or Python.</>
+                    ) : (
+                      <>
+                        {plural(counts.projects, "project")}, {plural(counts.roles, "role")} and{" "}
+                        {plural(counts.skillHits, "tool")} match.{" "}
+                        <a href={counts.projects ? "#work" : counts.roles ? "#experience" : "#skills"}>
+                          Jump to the first one
+                        </a>
+                      </>
+                    )
+                  ) : (
+                    <>Each point is a project, role or skill from this page. Drag to turn it.</>
+                  )}
+                </p>
+              </div>
+            </figure>
+          </div>
+        </section>
+
+        <Work />
+        <Experience />
+        <Product />
+        <Recognition />
+        <Skills />
+        <Education />
+      </main>
+
+      <footer id="contact" className="wrap contact">
+        <p className="contact__ask">
+          Hiring for AI or full-stack work, or building something with LLMs? Write to me.
+        </p>
+        <a className="contact__email" href={`mailto:${profile.email}`}>
+          {profile.email}
+        </a>
+        <div className="contact__actions">
+          <Link className="btn btn--solid" href="/contact">
+            Write me a message
+          </Link>
+        </div>
+        <FooterLinks />
       </footer>
-    </div>
+    </QueryProvider>
   );
 }
