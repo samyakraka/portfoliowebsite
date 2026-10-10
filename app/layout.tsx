@@ -19,11 +19,11 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://samyakraka.vercel.app"),
-  title: "Samyak Raka | AI Systems Engineer @ Crowdera",
+  title: "Samyak Raka | Software Engineer",
   description:
     "Associate Software Engineer, AI Systems at Crowdera. AI/ML, LLMs, RAG and AI agents. 4× hackathon winner from Nashik, India.",
   openGraph: {
-    title: "Samyak Raka | AI Systems Engineer @ Crowdera",
+    title: "Samyak Raka | Software Engineer",
     description: "AI/ML, LLMs, RAG and AI agents. 4× hackathon winner.",
     url: "https://samyakraka.vercel.app/",
     type: "website",
